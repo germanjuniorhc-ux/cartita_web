@@ -1,0 +1,1455 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#100b12">
+  <title>Una historia de dos</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --wine: #a33c62;
+      --rose: #ee9bb5;
+      --cream: #fff3e8;
+      --ink: #100b12;
+      --muted: #b7a9b0;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background: var(--ink);
+      color: var(--cream);
+      font-family: Georgia, "Times New Roman", serif;
+    }
+
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+
+    .gate {
+      position: fixed;
+      z-index: 5;
+      inset: 0;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+      overflow: hidden;
+      background:
+        radial-gradient(ellipse at 50% 40%, rgba(139, 43, 82, .42), transparent 55%),
+        linear-gradient(145deg, #180e18, #09080c 68%);
+      text-align: center;
+    }
+
+    .gate.is-hidden { opacity: 0; visibility: hidden; pointer-events: none; }
+    .gate-content { position: relative; z-index: 1; width: min(100%, 430px); }
+    .gate-mark { color: var(--rose); font-size: 3rem; }
+    .eyebrow { color: var(--rose); font: 700 .72rem/1.5 Arial, sans-serif; letter-spacing: .3em; text-transform: uppercase; }
+    .gate h1 { margin: 15px 0 10px; font-size: clamp(2.6rem, 9vw, 4.5rem); font-weight: 400; }
+    .gate p { color: #d7c8ce; line-height: 1.7; }
+    .gate-form { display: flex; gap: 9px; margin-top: 28px; }
+    .gate-form input {
+      width: 0;
+      flex: 1;
+      padding: 14px 16px;
+      border: 1px solid #ffffff33;
+      border-radius: 4px;
+      outline: none;
+      background: #ffffff0d;
+      color: white;
+    }
+    .gate-form input:focus { border-color: var(--rose); }
+    .gate-form button, .primary-button {
+      padding: 14px 18px;
+      border: 0;
+      border-radius: 4px;
+      background: var(--wine);
+      color: white;
+      font: 700 .78rem Arial, sans-serif;
+      letter-spacing: .07em;
+      transition: background .2s, transform .2s;
+    }
+    .gate-form button:hover, .primary-button:hover { background: #c45078; transform: translateY(-2px); }
+    .hint { margin-top: 14px; color: #9e8d96; font: .78rem Arial, sans-serif; }
+    .error { min-height: 1.2em; color: #ffb1c6; font: .85rem Arial, sans-serif; }
+
+    .site { position: relative; z-index: 2; min-height: 100vh; opacity: 0; }
+    .site.is-visible { opacity: 1; }
+    .topbar {
+      position: sticky;
+      z-index: 2;
+      top: 0;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 12px 24px;
+      width: 100%;
+      padding: 14px 6vw;
+      border-bottom: 1px solid #ffffff12;
+      background: #100b12ed;
+      backdrop-filter: blur(14px);
+    }
+    .brand { color: var(--rose); font: 700 1rem Arial, sans-serif; letter-spacing: .12em; }
+    .top-nav { display: flex; grid-column: 1 / -1; grid-row: 2; gap: 8px; overflow-x: auto; scrollbar-width: none; }
+    .top-nav::-webkit-scrollbar { display: none; }
+    .top-nav-button { flex: 0 0 auto; padding: 9px 13px; border: 1px solid transparent; border-radius: 20px; background: transparent; color: #d7c8ce; font: .78rem Arial, sans-serif; }
+    .top-nav-button:hover, .top-nav-button[aria-current="page"] { border-color: #ee9bb577; background: #ee9bb51c; color: #fff3e8; }
+    .top-actions { display: flex; flex-wrap: wrap; align-items: center; justify-content: end; gap: 8px; }
+    .music-track { color: #d7c8ce; font: .78rem Arial, sans-serif; }
+    .quiet-button {
+      padding: 9px 13px;
+      border: 1px solid #ffffff55;
+      border-radius: 3px;
+      background: #100b1277;
+      color: white;
+      font: .76rem Arial, sans-serif;
+    }
+    .quiet-button:hover { background: #ffffff1c; }
+    .app-screen { display: none; min-height: calc(100svh - 150px); }
+    .app-screen.is-active { display: block; }
+    .app-screen[hidden] { display: none; }
+    .standalone-screen { padding-top: clamp(24px, 5vh, 58px); }
+    .standalone-screen .letter { margin: 0 auto 30px; }
+    .screen-back { display: inline-flex; margin: 0 0 16px 7vw; text-decoration: none; }
+
+    .hero {
+      position: relative;
+      display: flex;
+      min-height: min(780px, 100svh);
+      align-items: end;
+      padding: 150px 8vw 92px;
+      overflow: hidden;
+      background:
+        linear-gradient(90deg, #100b12 0%, #100b12e8 28%, #100b1280 62%, #100b1244),
+        linear-gradient(0deg, #100b12, transparent 50%),
+        radial-gradient(ellipse at 72% 38%, #9a4368 0%, #54233e 24%, #211321 57%, #100b12 80%);
+    }
+    .hero-portrait {
+      position: absolute;
+      top: 15%;
+      right: 12%;
+      width: min(32vw, 360px);
+      height: 69%;
+      margin: 0;
+      overflow: hidden;
+      border: 1px solid #ffffff32;
+      border-radius: 44% 44% 12px 12px;
+      box-shadow: 0 25px 100px #0008, inset 0 0 50px #f1a9bd1c;
+      opacity: .88;
+      pointer-events: none;
+    }
+    .hero-portrait img { width: 100%; height: 100%; object-fit: cover; object-position: center 27%; }
+    .hero-portrait figcaption {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 28px 12px 13px;
+      background: linear-gradient(transparent, #100b12cc);
+      color: #fff3e8;
+      font: .8rem Arial, sans-serif;
+      text-align: center;
+    }
+    .hero-copy { position: relative; z-index: 1; max-width: 620px; }
+    .hero h2 { margin: 14px 0; font-size: clamp(3rem, 8vw, 6.7rem); font-weight: 400; line-height: .96; }
+    .hero-description { max-width: 450px; color: #e6d9df; font-size: 1.08rem; line-height: 1.7; }
+    .hero-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 27px; }
+    .play-button { background: var(--cream); color: #24151d; }
+    .secondary-button { border: 1px solid #ee9bb577; background: #24151dbb; }
+    .anniversary-card {
+      max-width: 930px;
+      margin: 0 auto;
+      padding: clamp(24px, 5vw, 42px);
+      border: 1px solid #ee9bb544;
+      border-radius: 8px;
+      background: radial-gradient(ellipse at 85% 20%, #ee9bb51c, transparent 50%), linear-gradient(135deg, #21151f, #171019);
+      box-shadow: 0 18px 70px #0004;
+      text-align: center;
+    }
+    .anniversary-card h2 { margin: 10px 0; font-size: clamp(1.7rem, 4vw, 2.4rem); font-weight: 400; }
+    .anniversary-card > p { max-width: 680px; margin: 12px auto; color: #e5d7de; font: 1rem/1.8 Arial, sans-serif; }
+    .relationship-count { margin-top: 18px !important; color: var(--rose) !important; font-size: clamp(1.05rem, 3vw, 1.35rem) !important; font-weight: 700; }
+    .anniversary-countdown { color: #cbbbc3 !important; font-size: .9rem !important; }
+    .love-note-card { max-width: 760px; margin: 0 auto; padding: 28px clamp(20px, 5vw, 40px); border: 1px solid #ee9bb544; border-radius: 8px; background: linear-gradient(135deg, #261520, #171019); text-align: center; }
+    .love-note-card h2 { margin: 8px 0; font-size: clamp(1.5rem, 4vw, 2rem); font-weight: 400; }
+    .love-note-card p { color: #e5d7de; font: 1rem/1.7 Arial, sans-serif; }
+    .love-note-card .primary-button { margin-top: 8px; }
+    .love-note-message { min-height: 3.4em; margin-bottom: 0 !important; color: var(--rose) !important; }
+
+    main { padding-bottom: 90px; }
+    .section { padding: 35px 7vw 15px; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 20px; margin-bottom: 20px; }
+    .section h2 { margin: 0; font-size: clamp(1.7rem, 4vw, 2.4rem); font-weight: 400; }
+    .section-note { color: var(--muted); font: .82rem/1.5 Arial, sans-serif; }
+    .memory-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 17px; }
+    .memory-card {
+      position: relative;
+      display: flex;
+      min-height: 230px;
+      flex-direction: column;
+      justify-content: end;
+      padding: 23px;
+      overflow: hidden;
+      border: 1px solid #ffffff1a;
+      border-radius: 5px;
+      background:
+        linear-gradient(0deg, #130d13 0%, #130d1344 58%, transparent),
+        radial-gradient(ellipse at 50% 20%, #e8a4b64d, transparent 50%),
+        linear-gradient(135deg, #4a263c, #1a111b 70%);
+      transition: transform .25s, border-color .25s;
+    }
+    .memory-card:hover { transform: translateY(-5px); border-color: #ee9bb577; }
+    .memory-card::after { position: absolute; z-index: 0; inset: 0; background: linear-gradient(0deg, #130d13 0%, #130d1380 48%, #130d1326); content: ""; pointer-events: none; }
+    .memory-card h3 { position: relative; margin: 0 0 8px; font-size: 1.35rem; font-weight: 400; }
+    .memory-card p { position: relative; margin: 0; color: #ddcfd5; font: .9rem/1.55 Arial, sans-serif; }
+    .memory-card-photo { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: center 30%; opacity: .76; }
+    .memory-card h3, .memory-card p { z-index: 1; }
+    .memory-card { cursor: pointer; }
+    .memory-card:focus-visible, .tree-photo:focus-visible { outline: 3px solid #ffc7da; outline-offset: 4px; }
+    .memory-tree-section { margin-top: 40px; scroll-margin-top: 30px; }
+    .tree-invitation { max-width: 700px; margin: 12px 0 25px; color: #ddcfd5; font: .95rem/1.7 Arial, sans-serif; }
+    .memory-tree {
+      position: relative;
+      display: flex;
+      min-height: 570px;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 7px;
+      max-width: 680px;
+      margin: 0 auto;
+      padding: 26px 8px 90px;
+      isolation: isolate;
+    }
+    .memory-tree::before {
+      position: absolute;
+      z-index: -1;
+      inset: 12px 5% 62px;
+      background:
+        radial-gradient(ellipse at 50% 20%, #7da67555, transparent 62%),
+        linear-gradient(135deg, #204736cc, #0d211d 70%);
+      clip-path: polygon(50% 0, 60% 19%, 71% 28%, 64% 30%, 81% 47%, 71% 47%, 91% 68%, 75% 67%, 100% 91%, 0 91%, 24% 67%, 9% 68%, 29% 47%, 19% 47%, 36% 30%, 29% 28%, 40% 19%);
+      content: "";
+      filter: drop-shadow(0 10px 24px #0008);
+    }
+    .memory-tree::after {
+      position: absolute;
+      z-index: -1;
+      bottom: 17px;
+      left: calc(50% - 24px);
+      width: 48px;
+      height: 92px;
+      border-radius: 4px 4px 12px 12px;
+      background: linear-gradient(90deg, #593524, #986344 48%, #54301f);
+      content: "";
+    }
+    .memory-tree-row { display: flex; width: 100%; justify-content: center; gap: clamp(4px, 1.5vw, 12px); }
+    .memory-tree-row:nth-child(1) { width: 47%; }
+    .memory-tree-row:nth-child(2) { width: 64%; }
+    .memory-tree-row:nth-child(3) { width: 80%; }
+    .memory-tree-row:nth-child(4) { width: 68%; }
+    .memory-tree-row:nth-child(5) { width: 48%; }
+    .tree-photo {
+      width: clamp(48px, 10vw, 80px);
+      aspect-ratio: 1;
+      flex: 0 1 80px;
+      padding: 4px;
+      overflow: hidden;
+      border: 2px solid #ffd783;
+      border-radius: 50%;
+      background: #fee7b5;
+      box-shadow: 0 0 12px #ffd78388, 0 4px 12px #0007;
+      transition: transform .2s, box-shadow .2s;
+      animation: tree-glow 2.4s ease-in-out infinite alternate;
+    }
+    .tree-photo:hover { position: relative; z-index: 1; transform: scale(1.18); box-shadow: 0 0 24px #ffe4aaff; }
+    .tree-photo img { width: 100%; height: 100%; border-radius: inherit; object-fit: cover; }
+    .memory-tree-row .tree-photo:nth-child(3n) { animation-delay: -.8s; }
+    .memory-tree-row .tree-photo:nth-child(2n) { animation-delay: -1.5s; }
+    @keyframes tree-glow { from { box-shadow: 0 0 8px #ffd78366; } to { box-shadow: 0 0 18px #ffd783dd; } }
+    .memory-dialog {
+      width: min(1120px, calc(100vw - 32px));
+      max-width: none;
+      max-height: min(88svh, 850px);
+      padding: 0;
+      overflow: hidden;
+      border: 1px solid #ee9bb577;
+      border-radius: 12px;
+      background: #171019;
+      color: var(--cream);
+      box-shadow: 0 30px 100px #000b;
+    }
+    .memory-dialog::backdrop { background: #09070dd9; backdrop-filter: blur(7px); }
+    .memory-dialog-inner { display: grid; min-height: 530px; max-height: min(88svh, 850px); grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); }
+    .memory-focus { display: flex; min-height: 0; flex-direction: column; padding: 25px; }
+    .memory-dialog-close { align-self: end; padding: 8px 13px; border: 1px solid #ffffff44; border-radius: 20px; background: transparent; color: white; }
+    .memory-focus-photo { width: 100%; min-height: 220px; max-height: 54svh; flex: 1; margin-top: 12px; border-radius: 8px; background: #231a23; object-fit: contain; }
+    .memory-focus h3 { margin: 20px 0 6px; color: var(--rose); font-size: 1.65rem; font-weight: 400; }
+    .memory-focus p { margin: 0; color: #e5d7de; font: 1rem/1.7 Arial, sans-serif; }
+    .memory-collage { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); align-content: start; gap: 9px; overflow: auto; padding: 58px 18px 22px; background: #0e0a10; }
+    .collage-photo { min-width: 0; padding: 3px; border: 1px solid #ffffff2a; border-radius: 6px; background: #21151f; cursor: pointer; }
+    .collage-photo[aria-current="true"] { border-color: #ffc7da; box-shadow: 0 0 16px #ee9bb577; }
+    .collage-photo img { display: block; width: 100%; aspect-ratio: 1; border-radius: 3px; object-fit: cover; }
+    .memory-collage-hint { grid-column: 1/-1; margin: -38px 0 0; color: var(--muted); font: .78rem/1.5 Arial, sans-serif; }
+    .letter {
+      max-width: 850px;
+      margin: 40px auto 10px;
+      padding: clamp(28px, 6vw, 58px);
+      border: 1px solid #ffffff1c;
+      border-radius: 5px;
+      background: linear-gradient(135deg, #21151f, #171019);
+      box-shadow: 0 18px 70px #0004;
+    }
+    .letter p { color: #e5d7de; font-size: 1.12rem; line-height: 1.9; }
+    .signature { margin-top: 30px; color: var(--rose) !important; font-size: 1.6rem !important; font-style: italic; }
+    .voice-message { margin-top: 38px; padding: 22px; border: 1px solid #ee9bb544; border-radius: 8px; background: #100b1299; }
+    .voice-message h3 { margin: 0 0 7px; color: var(--rose); font-size: 1.4rem; font-weight: 400; }
+    .voice-message p { margin: 0 0 14px; color: #cbbbc3; font: .9rem/1.6 Arial, sans-serif; }
+    .voice-message audio { display: block; width: 100%; }
+    .romance-panel {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(280px, .9fr);
+      align-items: center;
+      gap: clamp(20px, 5vw, 65px);
+      max-width: 1050px;
+      margin: 28px auto;
+      padding: clamp(24px, 5vw, 54px);
+      border: 1px solid #ffffff1c;
+      border-radius: 8px;
+      background: radial-gradient(ellipse at 82% 45%, #6f2e4933, transparent 52%), linear-gradient(135deg, #21151f, #171019);
+      box-shadow: 0 18px 70px #0004;
+    }
+    .romance-copy p { color: #e5d7de; font-size: 1.05rem; line-height: 1.8; }
+    #bouquet-screen .romance-panel { grid-template-columns: minmax(0, 1fr); gap: 12px; text-align: center; }
+    #bouquet-screen .romance-copy { max-width: 720px; margin: 0 auto; }
+    #bouquet-screen .bouquet-illustration { width: min(100%, 940px); margin: 0 auto; }
+    .bouquet-illustration { position: relative; }
+    .bouquet-art { display: block; width: 100%; height: auto; overflow: visible; filter: drop-shadow(0 25px 36px #0008); }
+    .floating-heart { position: absolute; top: 38%; left: 48%; color: #ffb4c8; font-size: 2rem; pointer-events: none; animation: float-away 1.5s ease-out forwards; }
+    @keyframes float-away { from { opacity: 1; transform: translateY(0) scale(.8); } to { opacity: 0; transform: translateY(-100px) scale(1.4); } }
+    .rose-head { cursor: pointer; }
+    .rose-head:focus-visible { outline: none; filter: drop-shadow(0 0 12px #fff3a8); }
+    .rose-head:hover .rose-bloom { filter: drop-shadow(0 0 8px #ffd8a4); }
+    .rose-bloom { transform-box: fill-box; transform-origin: center bottom; animation: rose-sway 3s ease-in-out infinite alternate; transition: filter .2s; }
+    .rose-head:nth-of-type(even) .rose-bloom { animation-delay: -.8s; }
+    @keyframes rose-sway { from { transform: rotate(-3deg); } to { transform: rotate(3deg); } }
+    .bouquet-message { min-height: 1.6em; color: var(--rose); font-size: 1.2rem; font-style: italic; line-height: 1.7; }
+    .bouquet-dedication { max-width: 650px; margin: 10px auto 0; color: #e5d7de; font-size: 1.15rem; line-height: 1.9; }
+    .robot-panel { max-width: 980px; grid-template-columns: 190px minmax(0, 1fr); align-items: start; margin: 28px auto; padding: clamp(22px, 4vw, 38px); }
+    .robot-intro { grid-column: 1/-1; }
+    .pet-stage { display: grid; justify-items: center; gap: 9px; padding: 16px 10px; border: 1px solid #ee9bb533; border-radius: 16px; background: radial-gradient(ellipse at 50% 27%, #d99a6b55, transparent 67%), #100b1299; text-align: center; }
+    .pet-portrait { display: grid; width: 152px; aspect-ratio: 1; place-items: center; overflow: hidden; border: 2px solid #ee9bb577; border-radius: 50%; background: #271823; box-shadow: 0 0 30px #ee9bb533; }
+    .pet-portrait img { width: 150%; height: 150%; object-fit: cover; object-position: center center; mix-blend-mode: multiply; animation: pet-bob 3s ease-in-out infinite; }
+    @keyframes pet-bob { 0%, 100% { transform: translateY(3px) rotate(-2deg); } 50% { transform: translateY(-4px) rotate(2deg); } }
+    .pet-stage figcaption { color: #f3cfdb; font: .82rem/1.5 Arial, sans-serif; }
+    .voice-button { width: 100%; padding: 9px 10px; border: 1px solid #ee9bb566; border-radius: 20px; background: #100b12; color: #f3cfdb; font: .76rem/1.4 Arial, sans-serif; cursor: pointer; }
+    .voice-button:disabled { cursor: not-allowed; opacity: .65; }
+    .robot-chat-area { min-width: 0; }
+    .chat-window { display: flex; min-height: 300px; max-height: 440px; flex-direction: column; gap: 13px; overflow: auto; padding: 18px; border: 1px solid #ffffff1c; border-radius: 6px; background: #0e0a10a8; }
+    .chat-message { max-width: min(90%, 520px); margin: 0; padding: 12px 15px; border-radius: 14px; font: .94rem/1.6 Arial, sans-serif; white-space: pre-wrap; overflow-wrap: anywhere; }
+    .chat-message.bot { align-self: flex-start; border: 1px solid #ee9bb533; background: #412033; color: #fff3e8; }
+    .chat-message.user { align-self: flex-end; background: #a33c62; color: white; }
+    .chat-form { display: flex; gap: 10px; margin-top: 15px; }
+    .chat-form input { min-width: 0; flex: 1; padding: 13px 15px; border: 1px solid #ffffff33; border-radius: 4px; background: #100b12; color: white; }
+    .quick-questions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 16px; }
+    .quick-question { padding: 9px 12px; border: 1px solid #ee9bb566; border-radius: 20px; background: transparent; color: #f3cfdb; font: .8rem Arial, sans-serif; }
+    .quick-question:hover { background: #ee9bb51c; }
+    .bot-disclaimer { margin: 12px 0 0; color: var(--muted); font: .78rem/1.5 Arial, sans-serif; }
+    footer { padding: 30px 20px; color: #988791; text-align: center; font: .78rem Arial, sans-serif; }
+
+    #love-rain {
+      position: fixed;
+      z-index: 3;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+    @media (max-width: 700px) {
+      .memory-dialog { width: calc(100vw - 20px); max-height: 92svh; }
+      .memory-dialog-inner { min-height: 0; max-height: 92svh; grid-template-columns: 1fr; grid-template-rows: minmax(0, 1fr) 150px; }
+      .memory-focus { min-height: 0; padding: 14px; }
+      .memory-focus-photo { min-height: 130px; max-height: 37svh; }
+      .memory-focus h3 { margin: 12px 0 4px; font-size: 1.35rem; }
+      .memory-focus p { font-size: .88rem; }
+      .memory-collage { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; padding: 10px; }
+      .memory-collage-hint { margin: 0; }
+      .robot-panel { grid-template-columns: 1fr; }
+      .robot-intro { grid-column: 1; }
+      .pet-stage { grid-template-columns: auto 1fr; justify-items: start; text-align: left; }
+      .pet-portrait { grid-row: span 2; width: 92px; }
+      .voice-button { width: auto; }
+      .memory-tree { min-height: 430px; gap: 5px; padding-bottom: 65px; }
+      .memory-tree-row:nth-child(1) { width: 60%; }
+      .memory-tree-row:nth-child(2) { width: 78%; }
+      .memory-tree-row:nth-child(3) { width: 100%; }
+      .memory-tree-row:nth-child(4) { width: 82%; }
+      .memory-tree-row:nth-child(5) { width: 58%; }
+    }
+    @media (max-width: 700px) {
+      .topbar { grid-template-columns: 1fr; gap: 11px; padding: 12px 5vw; }
+      .brand { font-size: .82rem; }
+      .top-nav { grid-column: 1; grid-row: auto; margin: 0 -2px; }
+      .top-nav-button { padding: 8px 11px; font-size: .72rem; }
+      .top-actions { justify-content: start; gap: 6px; }
+      .quiet-button { padding: 8px 9px; font-size: .68rem; }
+      .hero { min-height: 88svh; padding: 140px 7vw 70px; }
+      .hero-portrait { top: 17%; right: -8%; width: 58vw; height: 40%; opacity: .62; }
+      .hero-portrait img { object-position: center 25%; }
+      .hero-copy { max-width: 470px; }
+      .hero-description { font-size: .98rem; }
+      .memory-grid { grid-template-columns: 1fr; }
+      .memory-card { min-height: 190px; }
+      .section { padding-right: 6vw; padding-left: 6vw; }
+      .section-heading { align-items: start; flex-direction: column; gap: 8px; }
+      .romance-panel { grid-template-columns: 1fr; }
+      #bouquet-screen .bouquet-illustration { position: relative; left: auto; width: min(calc(100vw - 32px), 580px); max-width: none; margin: 0; justify-self: center; transform: none; }
+      .chat-form { align-items: stretch; }
+      .chat-form .primary-button { padding: 12px 13px; }
+    }
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; }
+    }
+  </style>
+</head>
+<body>
+  <canvas id="love-rain" aria-hidden="true"></canvas>
+
+  <section class="gate" id="gate" aria-labelledby="gate-title">
+    <div class="gate-content">
+      <div class="gate-mark" aria-hidden="true">♥</div>
+      <div class="eyebrow">Una historia hecha para ti</div>
+      <h1 id="gate-title">Hola, mi amor</h1>
+      <p>Hay un lugarcito en internet que existe solo para recordarte cuánto te quiero.</p>
+      <form class="gate-form" id="gate-form">
+        <input id="passphrase" type="password" placeholder="Nuestra palabra secreta" aria-label="Nuestra palabra secreta" autocomplete="off" required>
+        <button type="submit">ENTRAR</button>
+      </form>
+      <div class="error" id="gate-error" role="status" aria-live="polite"></div>
+      <div class="hint">Pista: nuestro aniversario</div>
+    </div>
+  </section>
+
+  <div class="site" id="site" aria-hidden="true">
+    <header class="topbar">
+      <div class="brand">♥ PARA MI PERSONA FAVORITA</div>
+      <div class="top-actions">
+        <span class="music-track">♪ Comenzar de Nuevo</span>
+        <button class="quiet-button" id="music-button" type="button" aria-pressed="false">▶ Reproducir</button>
+        <button class="quiet-button" id="rain-button" type="button" aria-pressed="true">♡ Lluvia de amor</button>
+      </div>
+      <nav class="top-nav" aria-label="Navegación principal">
+        <button class="top-nav-button" type="button" data-screen="home-screen" aria-current="page">Inicio</button>
+        <button class="top-nav-button" type="button" data-screen="letter-screen">Mi cartita</button>
+        <button class="top-nav-button" type="button" data-screen="bouquet-screen">Ramo de rosas</button>
+        <button class="top-nav-button" type="button" data-screen="robot-screen">Chat con POU</button>
+      </nav>
+    </header>
+
+    <main>
+      <section class="app-screen is-active" id="home-screen" aria-label="Portada">
+    <section class="hero">
+      <figure class="hero-portrait">
+        <img src="images/aracely.png" alt="Aracely, mi POU favorita">
+        <figcaption>Mi persona favorita ♥</figcaption>
+      </figure>
+      <div class="hero-copy">
+        <div class="eyebrow">De La Paz hasta Cochabamba, siempre contigo</div>
+        <h2>Mi historia<br>favorita eres tú.</h2>
+        <p class="hero-description">Aracely, aunque hoy nos separen kilómetros, eres mi lugar favorito. Y esta historia contigo sigue siendo mi película preferida. — German</p>
+        <div class="hero-buttons">
+          <button class="primary-button play-button" id="letter-button" type="button" data-screen="letter-screen">▶ &nbsp; LEER MI CARTITA</button>
+          <button class="primary-button secondary-button" id="bouquet-button" type="button" data-screen="bouquet-screen">🌹 &nbsp; UN RAMO PARA POU</button>
+          <button class="primary-button secondary-button" id="robot-button" type="button" data-screen="robot-screen">♡ &nbsp; HABLAR CON POU</button>
+        </div>
+      </div>
+    </section>
+
+      <section class="section" aria-labelledby="anniversary-title">
+        <div class="anniversary-card">
+          <div class="eyebrow">Nuestro día especial · 21 de diciembre</div>
+          <h2 id="anniversary-title">El día que comenzó nuestro “sí”</h2>
+          <p>Un 21 de diciembre de 2025, junto al árbol de Navidad de La Paz, te pregunté en persona si querías ser mi novia. Ese momento tan nuestro es el comienzo de esta historia que llevo con tanto amor. 🎄✨💞</p>
+          <p class="relationship-count" id="relationship-count" aria-live="polite"></p>
+          <p class="anniversary-countdown" id="anniversary-countdown"></p>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="love-note-title">
+        <div class="love-note-card">
+          <div class="eyebrow">Una sorpresa para ti</div>
+          <h2 id="love-note-title">Una razón más para amarte ♥</h2>
+          <p>Cuando quieras, abre una notita hecha con todo mi cariño.</p>
+          <button class="primary-button secondary-button" id="love-note-button" type="button">💌 Abrir una notita</button>
+          <p class="love-note-message" id="love-note-message" aria-live="polite">Aquí te espera un mensajito, mi POU. ✨</p>
+        </div>
+      </section>
+
+      <section class="section" aria-labelledby="memories-title">
+        <div class="section-heading">
+          <h2 id="memories-title">Nuestros recuerdos favoritos</h2>
+          <span class="section-note">La Paz ♥ Cochabamba · dos ciudades, un mismo cariño</span>
+          <button class="quiet-button" id="tree-jump-button" type="button">🌲 Ver nuestro árbol</button>
+        </div>
+        <div class="memory-grid" id="memory-grid">
+          <article class="memory-card" data-story="Hace casi un año fuimos juntos a ver el árbol de Navidad del estadio en La Paz. No fue solo una salida: fue una noche contigo que todavía recuerdo con muchísimo cariño y que me encantaría volver a vivir. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/navidad-juntos.png" alt=""><h3>Nuestra Navidad en La Paz</h3><p>Hace casi un año fuimos juntos a ver el árbol del estadio. Una noche que guardo con muchísimo cariño. ♥</p></article>
+          <article class="memory-card" data-story="Te digo POU porque así te conocen en tus misiones, pero para mí ese nombre también significa mi persona valiente, especial y querida. Admiro tu disciplina; y, cuando termina el día, también quiero cuidar a la Aracely dulce que merece descansar. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-uniforme.png" alt=""><h3>Mi POU valiente</h3><p>Te digo así por tu fortaleza y disciplina, y porque eres mi persona favorita dentro y fuera de cada misión.</p></article>
+          <article class="memory-card" data-story="Tu sonrisa me provoca sonreír también, incluso cuando solo puedo verla desde lejos. Me alegra los días, me calma el corazón y me recuerda por qué quiero compartir tantos momentos contigo. Nunca dudes de lo bonita que iluminas mi vida. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-sonrisa.png" alt=""><h3>La sonrisa que me alegra</h3><p>Me provoca sonreír, me alegra los días y hace que te extrañe todavía más.</p></article>
+          <article class="memory-card" data-story="Me encanta verte brillar y sentirte orgullosa de quién eres. No tienes que hacer nada especial para ser hermosa: lo eres cuando te ríes, cuando sueñas y cuando simplemente eres tú. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-traje.png" alt=""><h3>Siempre tan hermosa</h3><p>Me encanta verte brillar y ser orgullosamente tú.</p></article>
+          <article class="memory-card" data-story="Un abrazo tuyo es de esos recuerdos que quisiera guardar cerquita hasta que nos volvamos a ver. Desde La Paz te mando todos los que nos faltan; ojalá pronto podamos repetir este momento en persona. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/nuestro-abrazo.png" alt=""><h3>Un abrazo para repetir</h3><p>Un recuerdo que me hace extrañarte y esperar con ilusión el próximo abrazo.</p></article>
+          <article class="memory-card" data-story="Esta foto siempre me devuelve a ti, mi POU favorita. Aunque nos separen kilómetros, cada imagen me hace sentirte cerquita y agradecer que formes parte de mi vida. Te llevo conmigo, desde La Paz hasta Cochabamba. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely.png" alt=""><h3>Mi persona favorita</h3><p>De La Paz hasta Cochabamba, siempre te llevo cerquita de mi corazón.</p></article>
+          <article class="memory-card" data-story="Una selfie bajo las luces del árbol, con tu sonrisa cerquita de la mía. Esa noche en La Paz quedó guardada entre mis recuerdos más felices, y cada vez que la miro me dan ganas de volver ahí contigo. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/navidad-juntos-selfie.png" alt=""><h3>Una selfie bajo el árbol</h3><p>Una de esas noches en La Paz que quisiera volver a vivir contigo. ♥</p></article>
+          <article class="memory-card" data-story="En blanco y negro o a todo color, ese recuerdo sigue siendo brillante para mí. Lo bonito no era el filtro, sino estar contigo compartiendo aquella Navidad en La Paz. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/navidad-juntos-blanco-negro.png" alt=""><h3>Una Navidad para recordar</h3><p>Hasta en blanco y negro, este recuerdo sigue llenándome de alegría.</p></article>
+          <article class="memory-card" data-story="Una foto, el árbol encendido y tú conmigo: a veces la felicidad está justo en esos ratitos sencillos que se quedan para siempre en el corazón. Gracias por esa noche tan nuestra. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/navidad-juntos-love.png" alt=""><h3>Nuestro amor en La Paz</h3><p>Una foto, un árbol y un momento que siempre guardaré en el corazón.</p></article>
+          <article class="memory-card" data-story="Las luces del árbol se veían hermosas, pero mi parte favorita de esa noche fue poder estar cerquita de ti. Guardo este beso como una promesa de todos los abrazos que todavía nos debemos. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/beso-arbol-navidad.png" alt=""><h3>Un beso bajo las luces</h3><p>De todos los adornos de esa noche, mi favorito fue tenerte cerquita.</p></article>
+          <article class="memory-card" data-story="Te digo POU con muchísimo cariño, y además me enorgullece la mujer valiente y dedicada que eres. Admiro todo lo que haces por tus metas, pero recuerda que no tienes que ser fuerte a cada instante: también mereces mimos y descanso. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-uniforme-camuflaje-1.png" alt="Aracely posa con uniforme militar de camuflaje"><h3>POU, mi valiente de siempre</h3><p>Tu esfuerzo y tu coraje me llenan de orgullo; siempre quiero estar para ti.</p></article>
+          <article class="memory-card" data-story="Me encanta volver a este recuerdo de los dos juntitos frente al árbol. Ojalá pudiera enviarte ese abrazo en una foto: por ahora te mando mi cariño desde lejos y espero el próximo encuentro. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/abrazo-navidad.png" alt=""><h3>Así se siente estar contigo</h3><p>Ese abrazo junto al árbol que me dan ganas de repetir muy pronto.</p></article>
+          <article class="memory-card" data-story="Me hace feliz verte sonreír incluso en medio de tus días ocupados. Admiro lo mucho que luchas por lo que quieres y quiero que sepas que siempre estoy de tu lado, celebrando cada paso tuyo. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-uniforme-camuflaje-2.png" alt=""><h3>Orgulloso de ti, siempre</h3><p>Qué bonito es verte luchar por lo que quieres y brillar a tu manera.</p></article>
+          <article class="memory-card" data-story="Me encanta la Aracely de todos los días: auténtica, dulce, hermosa y con su propio estilo. No necesitas uniforme ni disfraz para brillar; siendo tú ya eres mi persona favorita. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-de-civil.png" alt=""><h3>Mi Aracely de todos los días</h3><p>Con tu estilo, tu sonrisa y esa forma tan tuya de ser hermosa.</p></article>
+          <article class="memory-card" data-story="Te admiro tanto con tu uniforme como fuera de él. Lo que más me inspira es la dedicación y la fuerza que hay detrás de cada uno de tus logros. Estoy orgulloso de ti, POU. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-uniforme-claro.png" alt=""><h3>Elegante y valiente</h3><p>Me encanta verte orgullosa de todo lo que has logrado.</p></article>
+          <article class="memory-card" data-story="Cada detalle de este uniforme me recuerda el orgullo que siento al verte trabajar por tus metas. Pero mi favorita no es una versión en particular: me gustas tú, en cada etapa y cada día. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-uniforme-gala.png" alt=""><h3>Brillas con tu uniforme</h3><p>Una mujer admirable, fuerte y preciosa, en cada versión de ti.</p></article>
+          <article class="memory-card" data-story="Mi Avatar favorita de todo el universo. Me encanta lo creativa que eres y lo hermosa que te ves en esta aventura. Con cualquier disfraz consigues sacarme una sonrisa, mi POU. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-disfraz-avatar-1.png" alt=""><h3>Mi Avatar favorita</h3><p>Tan hermosa y original con ese disfraz; imposible no sonreír al verte.</p></article>
+          <article class="memory-card" data-story="La más hermosa de Pandora, y también la dueña de mi corazón en la Tierra. Qué bonito que guardes recuerdos tan divertidos; gracias por compartir conmigo tantas versiones de ti. ♥" tabindex="0" role="button" aria-haspopup="dialog"><img class="memory-card-photo" src="images/aracely-disfraz-avatar-2.png" alt=""><h3>La más hermosa de Pandora</h3><p>Tu creatividad y tu belleza hacen especial hasta la aventura más fantástica.</p></article>
+        </div>
+        <p class="section-note">Cada foto guarda una parte de nuestra historia: nuestras Navidades, tu valentía y todos esos momentos en que te ves tan tú. ♥</p>
+        <section class="memory-tree-section" id="memory-tree-section" aria-labelledby="memory-tree-title">
+          <h2 id="memory-tree-title">Nuestro árbol de recuerdos</h2>
+          <p class="tree-invitation">Junté nuestras fotos como si cada una fuera una lucecita de aquel árbol de Navidad. Toca cualquier recuerdo: se abrirá con su mensaje y un collage de nuestras fotos. ♥</p>
+          <div class="memory-tree" id="memory-tree" aria-label="Árbol navideño hecho con nuestras fotos"></div>
+        </section>
+      </section>
+      </section>
+
+      <section class="app-screen section standalone-screen" id="letter-screen" aria-labelledby="letter-title" hidden>
+        <button class="quiet-button screen-back" type="button" data-screen="home-screen">← Volver a la portada</button>
+        <article class="letter">
+          <div class="eyebrow">Para ti, con todo mi corazón</div>
+          <h2 id="letter-title">Mi querida POU:</h2>
+          <p>Amor, te escribo estas palabras desde lo más profundo de mi corazón para que queden grabadas aquí, en esta página que construí pensando únicamente en ti. Porque aunque la distancia nos separe hoy entre La Paz y Cochabamba, mi mente y mi alma siempre están a tu lado. No hay un solo día en que no te recuerde, y no hay momento en que no valore todo lo que eres y todo lo que significas en mi vida. 💌❤️</p>
+          <p>Me pongo a pensar en todo lo que hemos vivido juntos y se me llena el pecho de una nostalgia bonita. Recuerdo con tanto cariño esa Navidad que pasamos juntos: ese momento al pie del árbol, con las luces brillando y tu sonrisa iluminando todo a mi alrededor. Ese día me di cuenta de lo afortunado que soy de tenerte y de lo mágico que es compartir la vida contigo. Esos recuerdos son mi refugio cuando la distancia pesa y cuando te extraño más de la cuenta. 🎄✨🥰</p>
+          <p>Extraño tanto nuestras cosas del día a día. Extraño la emoción que me da cuando me llega una fotito tuya y puedo contemplarte, aunque sea a través de la pantalla. Extraño con el alma escuchar tu voz en los audios; oírte hablar me cambia el día por completo, me devuelve la paz y me saca la sonrisa más sincera del mundo. Eres esa luz que ilumina mis días oscuros, porque aunque a veces me sienta triste o abrumado, basta con pensar en ti, con recordar tu risa o leer tus mensajes para que todo vuelva a tener sentido. Tú me haces inmensamente feliz de una manera que nadie más logra. 📸🎧☀️💖</p>
+          <p>Sé que estás pasando por un momento muy pesado, con mil cosas en la cabeza, con todo el esfuerzo y el estrés en la EMSE, y quiero que recuerdes siempre que te entiendo. Comprendo perfectamente el momento que estás viviendo, tus ocupaciones y tu necesidad de enfocarte; por eso mismo quiero que jamás olvides que, a pesar de todo, no estás sola. Aquí estoy yo, apoyándote en silencio, creyendo en ti y esperando pacientemente por nuestros momentos juntos. Mi amor por ti no cambia con la distancia ni con las prisas; al contrario, se hace más fuerte porque sé lo mucho que vales y lo mucho que luchas por tus metas. 💪🎖️🤍</p>
+          <p>Gracias por ser mi vida, por ser mi refugio y por darle tanto color a mi mundo. Te amo con todo lo que soy y siempre voy a estar aquí para ti, recordándote lo especial que eres y esperando el momento en que volvamos a estar juntos para no soltarte nunca más. 🌈❤️‍🔥🫂</p>
+          <p class="signature">Con todo mi amor, tu German ♥</p>
+          <div class="voice-message">
+            <h3>Un audio de German para ti 🎙️</h3>
+            <p>Grabé estas palabras para que puedas escucharlas cuando quieras, mi POU. ♥</p>
+            <button class="primary-button secondary-button" id="german-voice-button" type="button" aria-pressed="false">▶ Reproducir mi nota de voz</button>
+            <audio id="german-voice" controls preload="metadata">
+              <source src="audio/german-para-pou.mp3" type="audio/mpeg">
+              Tu navegador no pudo reproducir este audio. Intenta abrir la página en Chrome o Edge actualizado.
+            </audio>
+            <p class="bot-disclaimer" id="german-voice-status" aria-live="polite"></p>
+          </div>
+        </article>
+      </section>
+
+      <section class="app-screen section standalone-screen" id="bouquet-screen" aria-labelledby="bouquet-title" hidden>
+        <button class="quiet-button screen-back" type="button" data-screen="home-screen">← Volver a la portada</button>
+        <div class="romance-panel">
+          <div class="romance-copy">
+            <div class="eyebrow">Un detalle que viaja desde La Paz</div>
+            <h2 id="bouquet-title">Para ti, mi querida POU</h2>
+            <p>Estas rosas son para ti, mi POU. Toca cada una: detrás de sus pétalos hay un piropo distinto, enviado desde La Paz hasta Cochabamba. ♥</p>
+          </div>
+          <div class="bouquet-illustration">
+            <svg class="bouquet-art" viewBox="0 0 430 390" role="img" aria-labelledby="roses-title roses-description">
+              <title id="roses-title">Ramo grande de rosas para Aracely</title>
+              <desc id="roses-description">Un ramo abundante de rosas rojas y rosadas, hojas verdes y un envoltorio atado con un lazo.</desc>
+              <defs>
+                <linearGradient id="paper" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stop-color="#f6d5bd"/>
+                  <stop offset="1" stop-color="#b77a82"/>
+                </linearGradient>
+                <linearGradient id="petal" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stop-color="#ffd4cc"/>
+                  <stop offset=".24" stop-color="#eb6382"/>
+                  <stop offset=".67" stop-color="#c52850"/>
+                  <stop offset="1" stop-color="#701a3b"/>
+                </linearGradient>
+                <linearGradient id="inner-petal" x1="0" x2="1" y1="0" y2="1">
+                  <stop offset="0" stop-color="#ffd1dc"/>
+                  <stop offset=".55" stop-color="#e34b70"/>
+                  <stop offset="1" stop-color="#a91f4d"/>
+                </linearGradient>
+                <g id="rose">
+                  <path d="M0 0 C-13-2 -28-8 -31-22 C-35-38 -19-50 -7-39 C-10-55 10-59 17-43 C34-48 40-28 28-17 C27-5 12 1 0 0Z" fill="url(#petal)" stroke="#ffbac5" stroke-opacity=".4" stroke-width="1.5"/>
+                  <path d="M0-4 C-14-5 -23-13 -23-24 C-23-37 -9-41 -3-30 C0-44 18-41 19-28 C30-20 21-7 11-6 C6-2 2-2 0-4Z" fill="url(#inner-petal)"/>
+                  <path d="M0-11 C-10-10 -15-18 -11-25 C-7-32 0-28 2-22 C5-32 16-28 14-20 C18-13 9-9 4-11 C2-8 0-9 0-11Z" fill="#ffabc1"/>
+                  <path d="M-20-30 C-16-40-7-41-3-34 M10-38 C18-39 23-32 20-25 M-16-18 Q-10-26-4-25 M7-20 Q13-28 19-24" fill="none" stroke="#ffe6e3" stroke-linecap="round" stroke-width="2"/>
+                  <path d="M-12-3 Q-11-10-15-14 Q-7-10-4-4 Q-4-11 0-15 Q1-8 4-4 Q11-10 17-11 Q12-6 11-2Z" fill="#718453"/>
+                </g>
+              </defs>
+              <g fill="none" stroke="#718453" stroke-linecap="round" stroke-width="8">
+                <path d="M75 132 L190 315"/><path d="M122 91 L200 315"/><path d="M168 66 L208 315"/>
+                <path d="M216 78 L216 315"/><path d="M264 63 L224 315"/><path d="M310 91 L232 315"/><path d="M355 130 L240 315"/>
+              </g>
+              <g fill="#829465">
+                <path d="M121 183 Q77 146 67 173 Q89 202 132 200Z"/><path d="M151 230 Q198 185 214 210 Q198 243 155 247Z"/>
+                <path d="M161 151 Q119 119 105 145 Q126 172 165 171Z"/><path d="M194 204 Q150 168 139 194 Q164 223 199 222Z"/>
+                <path d="M246 175 Q284 138 299 161 Q278 191 244 197Z"/><path d="M268 232 Q313 188 328 214 Q307 245 270 250Z"/>
+                <path d="M297 161 Q336 125 351 149 Q329 180 296 184Z"/><path d="M222 265 Q185 234 169 256 Q190 282 224 284Z"/>
+              </g>
+              <path d="M48 143 L151 172 L215 321 L72 218Z" fill="#fff0df" opacity=".88"/>
+              <path d="M382 143 L279 172 L215 321 L358 218Z" fill="url(#paper)" opacity=".94"/>
+              <path d="M72 218 Q215 282 358 218 L326 354 Q215 382 104 354Z" fill="url(#paper)" stroke="#fff0df" stroke-opacity=".65" stroke-width="3"/>
+              <g class="rose-head" role="button" tabindex="0" aria-label="Rosa 1: toca para recibir un piropo" data-compliment="Tu sonrisa es mi paisaje favorito, mi POU. ♥" transform="translate(75 136) scale(.78)"><g class="rose-bloom"><use href="#rose"/></g></g>
+              <g class="rose-head" role="button" tabindex="0" aria-label="Rosa 2: toca para recibir un piropo" data-compliment="Eres valiente, dulce y absolutamente única. Qué suerte quererte. ♥" transform="translate(122 96) scale(.82)"><g class="rose-bloom"><use href="#rose"/></g></g>
+              <g class="rose-head" role="button" tabindex="0" aria-label="Rosa 3: toca para recibir un piropo" data-compliment="Desde La Paz, mi corazón siempre sabe cómo llegar hasta ti. 💌" transform="translate(168 71) scale(.86)"><g class="rose-bloom"><use href="#rose"/></g></g>
+              <g class="rose-head" role="button" tabindex="0" aria-label="Rosa 4: toca para recibir un piropo" data-compliment="Tu forma de ser me enamora más que cualquier película romántica. ♥" transform="translate(216 83) scale(.92)"><g class="rose-bloom"><use href="#rose"/></g></g>
+              <g class="rose-head" role="button" tabindex="0" aria-label="Rosa 5: toca para recibir un piropo" data-compliment="Con uniforme, de civil o de Avatar: mi favorita siempre eres tú. ✨" transform="translate(264 68) scale(.86)"><g class="rose-bloom"><use href="#rose"/></g></g>
+              <g class="rose-head" role="button" tabindex="0" aria-label="Rosa 6: toca para recibir un piropo" data-compliment="Cada kilómetro entre nosotros solo me da otra razón para extrañarte. ♥" transform="translate(310 96) scale(.82)"><g class="rose-bloom"><use href="#rose"/></g></g>
+              <g class="rose-head" role="button" tabindex="0" aria-label="Rosa 7: toca para recibir un piropo" data-compliment="Si pudiera, cambiaría todas estas rosas por un abrazo tuyo ahora mismo. 🌹" transform="translate(355 134) scale(.78)"><g class="rose-bloom"><use href="#rose"/></g></g>
+              <path d="M188 315 Q215 287 242 315 L231 335 Q215 323 199 337Z" fill="#a33c62"/>
+              <path d="M205 325 Q171 347 189 367 Q211 357 215 334 Q228 359 250 368 Q263 345 226 325Z" fill="#c45373"/>
+              <text x="215" y="383" fill="#fff3e8" font-family="Georgia,serif" font-size="13" font-style="italic" text-anchor="middle">para mi POU ♥</text>
+            </svg>
+          </div>
+          <p class="bouquet-dedication">Mi querida Aracely, cada rosa lleva un abrazo que hoy no puedo darte en persona. Aunque nuestros caminos estén en ciudades distintas, mi corazón siempre encuentra el camino hasta ti. Te quiero con todo lo que soy, mi POU. — German ♥</p>
+          <button class="primary-button" id="send-hug-button" type="button">Enviar un abrazo ♥</button>
+          <p class="bouquet-message" id="bouquet-message" aria-live="polite" aria-atomic="true">Toca una rosa y te dirá algo bonito. ♥</p>
+        </div>
+      </section>
+
+      <section class="app-screen section standalone-screen" id="robot-screen" aria-labelledby="robot-title" hidden>
+        <button class="quiet-button screen-back" type="button" data-screen="home-screen">← Volver a la portada</button>
+        <div class="romance-panel robot-panel">
+          <div class="romance-copy robot-intro">
+            <div class="eyebrow">Un ayudante pequeñito, pero cariñoso</div>
+            <h2 id="robot-title">Pregúntale a POU ♥</h2>
+            <p>Este POU es tu compañerito virtual: tiene respuestas cariñosas para recordarles su historia, animarte y sacarte una sonrisa. Funciona sin internet y no puede saber qué está pasando ahora ni inventar datos personales.</p>
+          </div>
+          <figure class="pet-stage">
+            <div class="pet-portrait"><img src="images/pou-mascota.png" alt="POU, un pequeño compañero virtual que te manda cariño"></div>
+            <figcaption>¡Hola, POU!<br>Estoy aquí para ti. ♥</figcaption>
+            <button class="voice-button" id="pou-sound-button" type="button" aria-pressed="false">🔊 Activar audio de POU al responder</button>
+            <button class="voice-button" id="voice-button" type="button" aria-pressed="false">🗣️ Leer respuestas con voz del dispositivo</button>
+            <p class="bot-disclaimer" id="pou-audio-status" aria-live="polite"></p>
+          </figure>
+          <div class="robot-chat-area">
+            <div class="chat-window" id="chat-window" role="log" aria-live="polite" aria-label="Conversación con POU">
+              <p class="chat-message bot">¡Hola, POU! Soy el mini ayudante de German. ¿Quieres preguntarme cuánto te quiere o qué piensa de la distancia? 💌</p>
+            </div>
+            <form class="chat-form" id="chat-form">
+              <input id="chat-input" type="text" placeholder="Escribe tu pregunta..." aria-label="Escribe tu pregunta" autocomplete="off" required>
+              <button class="primary-button" type="submit">Enviar</button>
+            </form>
+            <div class="quick-questions" aria-label="Preguntas sugeridas">
+              <button class="quick-question" type="button">¿Cuánto me quiere German?</button>
+              <button class="quick-question" type="button">¿Qué significa POU?</button>
+              <button class="quick-question" type="button">¿Y la distancia?</button>
+              <button class="quick-question" type="button">¿Me extrañas?</button>
+              <button class="quick-question" type="button">Hoy me siento triste</button>
+              <button class="quick-question" type="button">Recuérdame nuestra Navidad</button>
+              <button class="quick-question" type="button">Dime algo bonito</button>
+              <button class="quick-question" type="button">Cuéntame un chiste</button>
+            </div>
+            <p class="bot-disclaimer">Las respuestas son cariñosas y preparadas para ustedes. Puedes escuchar el audio original de POU o activar la lectura con la voz en español de este dispositivo; esta no imita la voz del videojuego. ♥</p>
+          </div>
+        </div>
+      </section>
+    </main>
+    <dialog class="memory-dialog" id="memory-dialog" aria-labelledby="memory-focus-title">
+      <div class="memory-dialog-inner">
+        <article class="memory-focus">
+          <button class="memory-dialog-close" id="memory-dialog-close" type="button">Cerrar ×</button>
+          <img class="memory-focus-photo" id="memory-focus-photo" alt="">
+          <h3 id="memory-focus-title"></h3>
+          <p id="memory-focus-story"></p>
+        </article>
+        <div class="memory-collage" id="memory-collage" aria-label="Collage de recuerdos"></div>
+      </div>
+    </dialog>
+    <footer>Hecho con mucho amor, solo para ti ♥</footer>
+  </div>
+
+  <audio id="background-music" src="audio/comenzar-de-nuevo.mp3" preload="auto" loop></audio>
+  <audio id="pou-voice" src="audio/pou-voice.mp3" preload="metadata"></audio>
+  <audio id="pou-no" src="audio/pou-dice-no.mp3" preload="metadata"></audio>
+
+  <script>
+    const ACCESS_WORD = "21122025";
+    const gate = document.getElementById("gate");
+    const site = document.getElementById("site");
+    const gateForm = document.getElementById("gate-form");
+    const passphrase = document.getElementById("passphrase");
+    const gateError = document.getElementById("gate-error");
+    const rainButton = document.getElementById("rain-button");
+    const canvas = document.getElementById("love-rain");
+    const context = canvas.getContext("2d");
+    const music = document.getElementById("background-music");
+    const musicButton = document.getElementById("music-button");
+    const wrongPasswordAudio = document.getElementById("pou-no");
+    const germanVoice = document.getElementById("german-voice");
+    const germanVoiceButton = document.getElementById("german-voice-button");
+    const germanVoiceStatus = document.getElementById("german-voice-status");
+    const pouVoiceAudio = document.getElementById("pou-voice");
+    const screens = Array.from(document.querySelectorAll(".app-screen"));
+    const relationshipCount = document.getElementById("relationship-count");
+    const anniversaryCountdown = document.getElementById("anniversary-countdown");
+    const memoryCards = Array.from(document.querySelectorAll(".memory-card"));
+    const memoryDialog = document.getElementById("memory-dialog");
+    const memoryFocusPhoto = document.getElementById("memory-focus-photo");
+    const memoryFocusTitle = document.getElementById("memory-focus-title");
+    const memoryFocusStory = document.getElementById("memory-focus-story");
+    const memoryCollage = document.getElementById("memory-collage");
+    const memoryTree = document.getElementById("memory-tree");
+    const bouquetMessage = document.getElementById("bouquet-message");
+    const voiceButton = document.getElementById("voice-button");
+    const pouSoundButton = document.getElementById("pou-sound-button");
+    const pouAudioStatus = document.getElementById("pou-audio-status");
+    const relationshipStart = { year: 2025, month: 11, day: 21 };
+    let rainEnabled = true;
+    let drops = [];
+    let heartBursts = [];
+    let selectedMemoryIndex = 0;
+    let voiceEnabled = false;
+    let pouSoundEnabled = false;
+    let speechRequestId = 0;
+    let musicShouldResumeAfterVoice = false;
+    let lastLoveNoteIndex = -1;
+
+    function screenFromHash() {
+      const requestedScreen = `${window.location.hash.slice(1)}-screen`;
+      return screens.some((screen) => screen.id === requestedScreen) ? requestedScreen : "home-screen";
+    }
+
+    function showScreen(screenId, updateHistory = true) {
+      const selectedScreen = screens.find((screen) => screen.id === screenId);
+      if (!selectedScreen) return;
+
+      for (const screen of screens) {
+        const isSelected = screen === selectedScreen;
+        screen.hidden = !isSelected;
+        screen.inert = !isSelected;
+        screen.classList.toggle("is-active", isSelected);
+        screen.setAttribute("aria-hidden", String(!isSelected));
+      }
+
+      document.querySelectorAll(".top-nav-button").forEach((button) => {
+        if (button.dataset.screen === screenId) {
+          button.setAttribute("aria-current", "page");
+        } else {
+          button.removeAttribute("aria-current");
+        }
+      });
+
+      window.scrollTo({ top: 0, behavior: "instant" });
+      if (updateHistory) {
+        const pageName = screenId.replace(/-screen$/, "");
+        window.history.pushState({ screenId }, "", `#${pageName}`);
+      }
+    }
+
+    showScreen(screenFromHash(), false);
+    window.addEventListener("popstate", () => showScreen(screenFromHash(), false));
+
+    function updateRelationshipCounter() {
+      const now = new Date();
+      const today = { year: now.getFullYear(), month: now.getMonth(), day: now.getDate() };
+      const startUtc = Date.UTC(relationshipStart.year, relationshipStart.month, relationshipStart.day);
+      const todayUtc = Date.UTC(today.year, today.month, today.day);
+      const totalDays = Math.floor((todayUtc - startUtc) / 86_400_000);
+      if (totalDays < 0) {
+        relationshipCount.textContent = "Nuestra historia está a punto de comenzar. ♥";
+      } else {
+        let years = today.year - relationshipStart.year;
+        let months = today.month - relationshipStart.month;
+        let days = today.day - relationshipStart.day;
+        if (days < 0) {
+          months -= 1;
+          days += new Date(today.year, today.month, 0).getDate();
+        }
+        if (months < 0) {
+          years -= 1;
+          months += 12;
+        }
+        const duration = [
+          years ? `${years} ${years === 1 ? "año" : "años"}` : "",
+          months ? `${months} ${months === 1 ? "mes" : "meses"}` : "",
+          days ? `${days} ${days === 1 ? "día" : "días"}` : ""
+        ].filter(Boolean).join(" y ");
+        const formattedTotal = new Intl.NumberFormat("es-BO").format(totalDays);
+        relationshipCount.textContent = `${duration || "Hoy"} juntos · ${formattedTotal} ${totalDays === 1 ? "día" : "días"} de nuestra historia. ♥`;
+      }
+
+      const nextAnniversary = new Date(today.year, relationshipStart.month, relationshipStart.day);
+      if (todayUtc > Date.UTC(today.year, nextAnniversary.getMonth(), nextAnniversary.getDate())) {
+        nextAnniversary.setFullYear(today.year + 1);
+      }
+      const daysUntilAnniversary = Math.round(
+        (Date.UTC(nextAnniversary.getFullYear(), nextAnniversary.getMonth(), nextAnniversary.getDate()) - todayUtc) / 86_400_000
+      );
+      anniversaryCountdown.textContent = daysUntilAnniversary === 0
+        ? "¡Hoy celebramos nuestro aniversario! 🎉❤️"
+        : `Faltan ${daysUntilAnniversary} ${daysUntilAnniversary === 1 ? "día" : "días"} para volver a celebrar nuestro día. 🎄`;
+    }
+
+    updateRelationshipCounter();
+    window.setInterval(updateRelationshipCounter, 60_000);
+
+    function openMemory(index) {
+      const card = memoryCards[index];
+      if (!card) return;
+      selectedMemoryIndex = index;
+      const photo = card.querySelector(".memory-card-photo");
+      const title = card.querySelector("h3").textContent;
+      memoryFocusPhoto.src = photo.getAttribute("src");
+      memoryFocusPhoto.alt = title;
+      memoryFocusTitle.textContent = title;
+      memoryFocusStory.textContent = card.dataset.story;
+      memoryCollage.querySelectorAll(".collage-photo").forEach((button, photoIndex) => {
+        button.setAttribute("aria-current", String(photoIndex === index));
+      });
+      memoryDialog.showModal();
+    }
+
+    memoryCards.forEach((card, index) => {
+      const title = card.querySelector("h3").textContent;
+      card.setAttribute("aria-label", `Abrir recuerdo: ${title}`);
+      card.addEventListener("click", () => openMemory(index));
+      card.addEventListener("keydown", (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          openMemory(index);
+        }
+      });
+
+      const collagePhoto = document.createElement("button");
+      collagePhoto.className = "collage-photo";
+      collagePhoto.type = "button";
+      collagePhoto.dataset.memoryIndex = String(index);
+      collagePhoto.setAttribute("aria-label", `Ver recuerdo: ${title}`);
+      const thumbnail = document.createElement("img");
+      thumbnail.src = card.querySelector(".memory-card-photo").getAttribute("src");
+      thumbnail.alt = title;
+      collagePhoto.append(thumbnail);
+      memoryCollage.append(collagePhoto);
+    });
+
+    const treeRowSizes = [3, 4, 5, 4, 2];
+    let treeMemoryIndex = 0;
+    for (const rowSize of treeRowSizes) {
+      const row = document.createElement("div");
+      row.className = "memory-tree-row";
+      for (let photoIndex = 0; photoIndex < rowSize; photoIndex += 1) {
+        const card = memoryCards[treeMemoryIndex];
+        const title = card.querySelector("h3").textContent;
+        const treePhoto = document.createElement("button");
+        treePhoto.className = "tree-photo";
+        treePhoto.type = "button";
+        treePhoto.dataset.memoryIndex = String(treeMemoryIndex);
+        treePhoto.setAttribute("aria-label", `Abrir recuerdo: ${title}`);
+        const image = document.createElement("img");
+        image.src = card.querySelector(".memory-card-photo").getAttribute("src");
+        image.alt = title;
+        treePhoto.append(image);
+        row.append(treePhoto);
+        treeMemoryIndex += 1;
+      }
+      memoryTree.append(row);
+    }
+
+    memoryDialog.addEventListener("click", (event) => {
+      const collagePhoto = event.target.closest(".collage-photo");
+      if (collagePhoto) {
+        openMemory(Number(collagePhoto.dataset.memoryIndex));
+      }
+    });
+    document.getElementById("memory-dialog-close").addEventListener("click", () => memoryDialog.close());
+    document.getElementById("tree-jump-button").addEventListener("click", () => {
+      document.getElementById("memory-tree-section").scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    memoryTree.addEventListener("click", (event) => {
+      const photo = event.target.closest(".tree-photo");
+      if (photo) openMemory(Number(photo.dataset.memoryIndex));
+    });
+
+    gateForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      if (passphrase.value.trim().toLowerCase() !== ACCESS_WORD) {
+        gateError.textContent = "Esa no es la palabra, mi amor. POU dice: ¡No! Intenta otra vez ♥";
+        wrongPasswordAudio.currentTime = 0;
+        wrongPasswordAudio.play().catch(() => {
+          gateError.textContent = "Esa no es la palabra, mi amor. POU dice: ¡No! (No se pudo reproducir el audio.) Intenta otra vez ♥";
+        });
+        passphrase.select();
+        return;
+      }
+      wrongPasswordAudio.pause();
+      wrongPasswordAudio.currentTime = 0;
+      gate.classList.add("is-hidden");
+      gate.setAttribute("aria-hidden", "true");
+      gate.inert = true;
+      site.classList.add("is-visible");
+      site.setAttribute("aria-hidden", "false");
+      showScreen(screenFromHash(), false);
+      music.play().catch(() => {
+        musicButton.textContent = "♫ Reproducir canción";
+      });
+      window.setTimeout(() => passphrase.value = "", 900);
+    });
+
+    rainButton.addEventListener("click", () => {
+      rainEnabled = !rainEnabled;
+      rainButton.setAttribute("aria-pressed", String(rainEnabled));
+      rainButton.textContent = rainEnabled ? "♡ Lluvia de amor" : "♡ Activar lluvia";
+      if (!rainEnabled) context.clearRect(0, 0, canvas.width, canvas.height);
+    });
+
+    musicButton.addEventListener("click", () => {
+      if (music.paused) {
+        music.play().catch(() => {
+          musicButton.textContent = "♫ Reproducir canción";
+        });
+      } else {
+        music.pause();
+      }
+    });
+
+    music.addEventListener("play", () => {
+      musicButton.textContent = "Ⅱ Pausar música";
+      musicButton.setAttribute("aria-pressed", "true");
+    });
+    music.addEventListener("pause", () => {
+      musicButton.textContent = "▶ Reproducir";
+      musicButton.setAttribute("aria-pressed", "false");
+    });
+    music.addEventListener("error", () => {
+      musicButton.textContent = "♫ Canción no disponible";
+      musicButton.setAttribute("aria-pressed", "false");
+    });
+
+    const loveNotes = [
+      "Amo la forma en que tu sonrisa puede hacer que hasta un día normal se vuelva especial. ♥",
+      "Admiro tu valentía, pero también quiero que recuerdes que conmigo puedes descansar y ser simplemente tú. 💌",
+      "Desde aquella Navidad junto al árbol, guardo ese momento como una de mis lucecitas favoritas. 🎄✨",
+      "Aunque hoy estemos en ciudades distintas, siempre encuentro una manera de sentirte cerquita de mi corazón. 🫂",
+      "Me encanta recibir una foto tuya: por un instante, el día se siente más bonito y más cerca de ti. 📸",
+      "No tienes que hacer nada extraordinario para ser maravillosa; siendo Aracely ya iluminas mi mundo. 🌷",
+      "Estoy orgulloso de todo lo que luchas por tus sueños. Cuenta conmigo también en los días cansados. 🤍",
+      "Si pudiera elegir otra vez, volvería a buscar tu mano bajo aquellas luces de Navidad. ❤️",
+      "Tu risa es de mis sonidos favoritos y tu voz siempre tiene un lugarcito especial en mis días. 🎶",
+      "La distancia no cambia lo importante: eres mi persona favorita y te llevo conmigo, donde vaya. 💞",
+      "Gracias por dejarme compartir esta historia contigo. Cada recuerdo a tu lado vale muchísimo para mí. ✨",
+      "Te quiero en tus días alegres, en tus días difíciles y en todos los días sencillos que todavía nos esperan. ♥"
+    ];
+
+    document.getElementById("love-note-button").addEventListener("click", () => {
+      let noteIndex = Math.floor(Math.random() * loveNotes.length);
+      if (loveNotes.length > 1 && noteIndex === lastLoveNoteIndex) {
+        noteIndex = (noteIndex + 1 + Math.floor(Math.random() * (loveNotes.length - 1))) % loveNotes.length;
+      }
+      lastLoveNoteIndex = noteIndex;
+      document.getElementById("love-note-message").textContent = loveNotes[noteIndex];
+    });
+
+    document.querySelectorAll("[data-screen]").forEach((button) => {
+      button.addEventListener("click", () => {
+        const screenId = button.dataset.screen;
+        showScreen(screenId);
+        if (screenId === "robot-screen") {
+          chatInput.focus({ preventScroll: true });
+        }
+      });
+    });
+
+    document.getElementById("send-hug-button").addEventListener("click", () => {
+      const message = document.getElementById("bouquet-message");
+      message.textContent = "Abrazo enviado desde La Paz hasta Cochabamba. German te quiere muchísimo, POU. ♥";
+      const bouquet = document.querySelector(".bouquet-illustration");
+      const heart = document.createElement("span");
+      heart.className = "floating-heart";
+      heart.setAttribute("aria-hidden", "true");
+      heart.textContent = "♥";
+      bouquet.append(heart);
+      window.setTimeout(() => heart.remove(), 1500);
+    });
+
+    function resumeMusicAfterVoice() {
+      const shouldResume = musicShouldResumeAfterVoice;
+      musicShouldResumeAfterVoice = false;
+      if (shouldResume && music.paused) {
+        music.play().catch(() => {
+          musicButton.textContent = "♫ Reproducir canción";
+          germanVoiceStatus.textContent = "Tu nota terminó. Pulsa «Reproducir» para continuar con la música. ♥";
+        });
+      }
+    }
+
+    germanVoiceButton.addEventListener("click", async () => {
+      if (!germanVoice.paused) {
+        germanVoice.pause();
+        return;
+      }
+      if (germanVoice.ended) germanVoice.currentTime = 0;
+      germanVoiceStatus.textContent = "Cargando tu nota de voz…";
+      try {
+        await germanVoice.play();
+      } catch {
+        germanVoiceStatus.textContent = window.location.protocol === "file:"
+          ? "El navegador bloqueó la reproducción desde un archivo local. Abre la página con Live Server o desde una dirección http://localhost y vuelve a intentarlo. ♥"
+          : "No se pudo reproducir la nota. Comprueba que audio/german-para-pou.mp3 esté junto a index.html y prueba en Chrome o Edge.";
+      }
+    });
+
+    germanVoice.addEventListener("play", () => {
+      musicShouldResumeAfterVoice = !music.paused;
+      if (musicShouldResumeAfterVoice) music.pause();
+      germanVoiceButton.textContent = "Ⅱ Pausar mi nota de voz";
+      germanVoiceButton.setAttribute("aria-pressed", "true");
+      germanVoiceStatus.textContent = "Reproduciendo mi nota de voz para ti. ♥";
+    });
+    germanVoice.addEventListener("pause", () => {
+      germanVoiceButton.textContent = germanVoice.ended ? "▶ Volver a escuchar mi nota" : "▶ Reanudar mi nota de voz";
+      germanVoiceButton.setAttribute("aria-pressed", "false");
+      if (!germanVoice.ended) {
+        germanVoiceStatus.textContent = "Nota pausada.";
+        resumeMusicAfterVoice();
+      }
+    });
+    germanVoice.addEventListener("ended", () => {
+      germanVoiceButton.textContent = "▶ Volver a escuchar mi nota";
+      germanVoiceButton.setAttribute("aria-pressed", "false");
+      germanVoiceStatus.textContent = "Terminó mi nota de voz. Espero que te haya gustado, mi POU. ♥";
+      resumeMusicAfterVoice();
+    });
+    germanVoice.addEventListener("error", () => {
+      const errorMessages = {
+        1: "La reproducción se canceló.",
+        2: "No se pudo cargar el archivo de audio.",
+        3: "El archivo de audio parece estar dañado.",
+        4: "Este navegador no reconoce el formato de audio."
+      };
+      const errorCode = germanVoice.error?.code;
+      germanVoiceStatus.textContent = window.location.protocol === "file:"
+        ? "El navegador bloqueó la nota al abrir index.html directamente. Abre la página con Live Server o desde una dirección http://localhost. ♥"
+        : `${errorMessages[errorCode] || "No se pudo abrir la nota de voz."} Comprueba que audio/german-para-pou.mp3 esté junto a index.html y prueba en Chrome o Edge.`;
+      germanVoiceButton.textContent = "▶ Intentar reproducir de nuevo";
+      germanVoiceButton.setAttribute("aria-pressed", "false");
+      resumeMusicAfterVoice();
+    });
+
+    const bouquetIllustration = document.querySelector(".bouquet-illustration");
+    function showRoseCompliment(rose) {
+      if (!rose) return;
+      bouquetMessage.textContent = rose.dataset.compliment;
+      const heart = document.createElement("span");
+      heart.className = "floating-heart";
+      heart.setAttribute("aria-hidden", "true");
+      heart.textContent = "♥";
+      bouquetIllustration.append(heart);
+      window.setTimeout(() => heart.remove(), 1500);
+    }
+
+    bouquetIllustration.addEventListener("click", (event) => {
+      showRoseCompliment(event.target.closest(".rose-head"));
+    });
+    bouquetIllustration.addEventListener("keydown", (event) => {
+      if ((event.key === "Enter" || event.key === " ") && event.target.matches(".rose-head")) {
+        event.preventDefault();
+        showRoseCompliment(event.target);
+      }
+    });
+
+    if (!("speechSynthesis" in window)) {
+      voiceButton.disabled = true;
+      voiceButton.textContent = "Lectura en voz alta no disponible";
+    }
+
+    function speakAsPou(text) {
+      if (!voiceEnabled || !("speechSynthesis" in window)) return;
+      const requestId = ++speechRequestId;
+      window.speechSynthesis.cancel();
+      const speech = new SpeechSynthesisUtterance(text);
+      const spanishVoice = window.speechSynthesis.getVoices().find((voice) => /^es(?:-|_)/i.test(voice.lang));
+      speech.lang = spanishVoice ? spanishVoice.lang : "es-BO";
+      if (spanishVoice) speech.voice = spanishVoice;
+      speech.rate = .94;
+      speech.pitch = 1.12;
+      speech.onerror = (event) => {
+        if (requestId !== speechRequestId || event.error === "canceled" || event.error === "interrupted") return;
+        voiceEnabled = false;
+        voiceButton.setAttribute("aria-pressed", "false");
+        voiceButton.textContent = "Voz no disponible; intenta otra vez";
+      };
+      window.speechSynthesis.speak(speech);
+    }
+
+    voiceButton.addEventListener("click", () => {
+      voiceEnabled = !voiceEnabled;
+      if (voiceEnabled && pouSoundEnabled) {
+        pouSoundEnabled = false;
+        pouSoundButton.setAttribute("aria-pressed", "false");
+        pouSoundButton.textContent = "🔊 Activar audio de POU al responder";
+        pouVoiceAudio.pause();
+        pouVoiceAudio.currentTime = 0;
+      }
+      voiceButton.setAttribute("aria-pressed", String(voiceEnabled));
+      voiceButton.textContent = voiceEnabled ? "🔈 Desactivar lectura en voz alta" : "🗣️ Leer respuestas con voz del dispositivo";
+      if (voiceEnabled) {
+        speakAsPou("¡Hola, POU! Soy tu compañerito virtual. Cuéntame, estoy aquí para ti.");
+      } else {
+        speechRequestId += 1;
+        window.speechSynthesis.cancel();
+      }
+    });
+
+    if (pouVoiceAudio.error) {
+      pouSoundButton.disabled = true;
+      pouSoundButton.textContent = "Sonido original de POU no disponible";
+    }
+
+    pouVoiceAudio.addEventListener("error", () => {
+      pouSoundEnabled = false;
+      pouSoundButton.setAttribute("aria-pressed", "false");
+      pouSoundButton.textContent = "Sonido original de POU no disponible";
+      pouAudioStatus.textContent = "No se pudo cargar el audio de POU. Puedes probar la lectura en voz alta del dispositivo.";
+    });
+
+    pouSoundButton.addEventListener("click", () => {
+      pouSoundEnabled = !pouSoundEnabled;
+      if (pouSoundEnabled && voiceEnabled) {
+        voiceEnabled = false;
+        speechRequestId += 1;
+        window.speechSynthesis.cancel();
+        voiceButton.setAttribute("aria-pressed", "false");
+        voiceButton.textContent = "🗣️ Leer respuestas con voz del dispositivo";
+      }
+      pouSoundButton.setAttribute("aria-pressed", String(pouSoundEnabled));
+      pouSoundButton.textContent = pouSoundEnabled ? "🔈 Desactivar audio de POU" : "🔊 Activar audio de POU al responder";
+      if (pouSoundEnabled) {
+        pouVoiceAudio.currentTime = 0;
+        pouVoiceAudio.play().catch(() => {
+          pouSoundEnabled = false;
+          pouSoundButton.setAttribute("aria-pressed", "false");
+          pouSoundButton.textContent = "Sonido de POU no disponible; intenta otra vez";
+          pouAudioStatus.textContent = "El navegador no pudo reproducir el audio de POU.";
+        });
+      } else {
+        pouVoiceAudio.pause();
+        pouVoiceAudio.currentTime = 0;
+      }
+    });
+
+    const chatWindow = document.getElementById("chat-window");
+    const chatForm = document.getElementById("chat-form");
+    const chatInput = document.getElementById("chat-input");
+
+    function answerPou(question) {
+      const text = question.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[¿?¡!,.;:]/g, " ");
+      const has = (...words) => words.some((word) => text.includes(word));
+      const pick = (answers) => answers[Math.floor(Math.random() * answers.length)];
+
+      if (has("como estas", "como te sientes", "que tal estas", "como te va")) {
+        return pick([
+          "Estoy muy bien ahora que POU vino a conversar conmigo. ¿Y tú, cómo va tu día? ♥",
+          "Aquí, feliz de acompañarte un ratito y mandarte todo el cariño de German. ¿Cómo te sientes hoy? 💌",
+          "Mejor desde que apareciste por aquí. Cuéntame cómo estás tú, Aracely. 😊"
+        ]);
+      }
+      if (has("dime algo bonito", "algo bonito", "un piropo", "halago", "necesito escuchar algo lindo")) {
+        return pick([
+          "Eres hermosa, sí, pero lo que más admira German es la persona valiente, dulce y auténtica que eres. ♥",
+          "Por si hoy lo olvidaste: haces más bonito el mundo de alguien solo con ser tú, Aracely. 💌",
+          "German cruzaría kilómetros solo por volver a ver esa sonrisa tuya. Nunca dudes de lo especial que eres. ✨"
+        ]);
+      }
+      if (has("cuentame un chiste", "hazme reir", "algo gracioso", "un chiste")) {
+        return pick([
+          "¿Qué le dijo una rosa a otra? «¡Nos vemos en el ramo!» 🌹 Ya sé, POU: German tiene mejores piropos que chistes. 😄",
+          "¿Cuál es el colmo de una carta romántica? ¡Que se quede sin palabras justo cuando quiere decir «te amo»! 💌",
+          "POU, ¿sabes cuál es la distancia más corta entre La Paz y Cochabamba? Un mensajito tuyo que le saque una sonrisa a German. 😊"
+        ]);
+      }
+      if (has("sonrisa", "sonreir", "reir", "risa")) {
+        return pick([
+          "Tu sonrisa es de esas cosas que a German le alegran el día incluso cuando solo puede verla en una foto. Nunca olvides lo bonita que es. ♥",
+          "Si hoy te nace sonreír, que sea por ti; y si no, aquí tienes un recordatorio: hay alguien en La Paz que guarda tu risa como un recuerdo favorito. 😊",
+          "La sonrisa que más le gusta a German es la tuya, sobre todo cuando aparece sin que te des cuenta. 💌"
+        ]);
+      }
+      if (has("navidad", "arbol", "luces", "estadio")) {
+        return pick([
+          "Nuestra Navidad junto al árbol de La Paz siempre va a ser una lucecita especial para German. No eran solo las decoraciones: eras tú, ahí, compartiendo ese momento con él. 🎄✨",
+          "German recuerda aquella noche bajo el árbol, tu sonrisa y lo afortunado que se sintió de tenerte cerquita. Es uno de sus recuerdos más queridos. ♥",
+          "Ese paseo al árbol del estadio quedó guardado en esta página porque para German fue el comienzo de un recuerdo precioso contigo. 💞"
+        ]);
+      }
+      if (has("foto", "fotito", "selfie", "imagen")) {
+        return pick([
+          "Cada foto tuya le recuerda a German lo mucho que le gusta mirarte y lo agradecido que está de compartir recuerdos contigo. 📸♥",
+          "Cuando le mandas una fotito, German siente que por un momento estás un poquito más cerquita. Guarda esas imágenes con mucho cariño. 💌",
+          "En esta página hay recuerdos de ustedes dos porque cada foto cuenta una parte pequeña y bonita de su historia. ✨"
+        ]);
+      }
+      if (has("audio", "nota de voz", "tu voz", "escuchar tu voz")) {
+        return pick([
+          "La voz de Aracely es uno de los sonidos favoritos de German. Por eso dejó aquí una nota suya para que puedas escucharla cuando quieras. 🎙️♥",
+          "Cuando German escucha tus audios, dice que se le alegra el día. Tu voz le hace sentirte cerquita, incluso desde lejos. 💌",
+          "Puedes reproducir la nota de voz de German en la cartita, y activar mi sonido de POU si quieres que te acompañe en el chat. 😊"
+        ]);
+      }
+      if (has("ramo", "rosa", "rosas", "flores", "regalo", "sorpresa")) {
+        return pick([
+          "German preparó un ramo para ti con mucho cariño. Entra en «Ramo de rosas» y toca una flor: cada una guarda un piropo distinto. 🌹",
+          "Tu regalo más grande no cabe en una pantalla, POU: es todo el cariño que German te manda desde La Paz. Pero sí puedes abrir el ramo que hizo para ti. 💐",
+          "Hay una sorpresa romántica esperándote en el botón «Ramo de rosas». ¡Toca los pétalos para descubrir tus mensajitos! ♥"
+        ]);
+      }
+      if (has("celos", "insegura", "inseguridad", "confianza", "me quiere de verdad")) {
+        return pick([
+          "Es comprensible que a veces aparezcan dudas, POU. No puedo saber exactamente qué siente German en cada momento; hablarlo con calma y escucharse puede ayudarles mucho. ♥",
+          "No tienes que guardarte lo que sientes. Cuéntaselo a German con honestidad y pídele que te escuche; mereces sentirte querida y segura. 💌",
+          "Una duda no define toda una relación. Respira, piensa qué necesitas y conversen con cariño, sin intentar adivinar lo que el otro piensa."
+        ]);
+      }
+      if (has("sueno", "sueño", "pesadilla")) {
+        return pick([
+          "Los sueños no tienen una interpretación única, POU, y no quiero inventar lo que significa el tuyo. Si te dejó una emoción fuerte, puedes contarme qué sentiste y lo pensamos con calma. ♥",
+          "A veces un sueño se queda dando vueltas en la cabeza, pero no es una predicción. Si te preocupó, cuéntaselo a alguien de confianza y date un poquito de paz. 💌",
+          "No puedo descifrar sueños como si fueran señales, pero sí puedo escucharte. ¿Te despertaste tranquila, feliz o preocupada? 😊"
+        ]);
+      }
+      if (has("que opinas", "que piensas", "crees que", "tu opinion", "tu opinión")) {
+        return pick([
+          "Puedo darte una mirada cariñosa, pero no conozco todos los detalles. Cuéntame un poquito más de qué pasó y trataré de responderte sin inventar. ♥",
+          "Mi opinión pequeñita: lo mejor suele ser hablar con sinceridad, escuchar también y cuidar lo que sienten los dos. ¿Qué parte te preocupa, POU?",
+          "No quiero adivinar por ustedes. Si me explicas un poco más, puedo ayudarte a ordenar la idea y pensar en una forma amable de hablarlo. 💌"
+        ]);
+      }
+      if (has("hola", "buenas", "buen dia", "buenos dias", "buenas noches", "quien eres")) {
+        return pick([
+          "¡Holaaa, POU! 💌 Aquí está tu mini rincón de cariño. ¿Qué quieres preguntarme hoy?",
+          "¡Hola, Aracely! Te mando un saludito directo desde este pedacito de La Paz que German hizo para ti. ♥",
+          "¡Buenas, mi POU! Si pudiera, te mandaría un abrazo junto con este saludo. 😊"
+        ]);
+      }
+      if (has("triste", "desanim", "cansad", "estresad", "preocupad", "ansios", "llorar", "sola", "difícil", "dificil", "mal dia")) {
+        return pick([
+          "Ay, POU, siento que hoy esté siendo difícil. No tienes que poder con todo a la vez: respira, date un poquito de cariño y recuerda que German está orgulloso de ti. ♥",
+          "Si pudiera, te daría un abrazo larguito ahora mismo. Descansar también es ser fuerte, Aracely. No tienes que cargar el mundo tú sola.",
+          "Un día pesado no cambia lo valiente y querida que eres. Ojalá puedas hablar con German y dejar que te acompañe, aunque sea desde lejos. 💌"
+        ]);
+      }
+      if (has("extrañ", "extran", "te echo de menos", "me echas", "me haces falta", "falta", "lejos")) {
+        return pick([
+          "German te extraña un montón, POU. Hay días en que La Paz parece demasiado lejos de Cochabamba, pero siempre te lleva cerquita del corazón. ♥",
+          "Aunque no pueda abrazarte ahora, seguro piensa en ti más veces de las que caben en un mensajito. Ya llegará su próximo encuentro. 💌",
+          "La distancia solo cuenta kilómetros; no cuenta las ganas que tiene German de verte y escucharte. Te extraña muchísimo."
+        ]);
+      }
+      if (has("cuando", "vernos", "vernos", "visitar", "viajar", "visita", "encuentro", "abrazo", "cochabamba", "la paz", "distancia", "juntos")) {
+        return pick([
+          "La Paz y Cochabamba están en ciudades distintas, pero el cariño de German te acompaña a donde vayas. ¡Ya llegará ese próximo abrazo, POU! ♥",
+          "Los kilómetros no deciden lo que sienten. Hasta que puedan verse, pueden regalarse llamadas, mensajes bonitos y planes para ese abrazo pendiente.",
+          "Si preguntas cuándo se verán, esa fecha solo la saben ustedes dos. Lo que sí sé es que German espera con ilusión el día de volver a tenerte cerquita. 💌"
+        ]);
+      }
+      if (has("militar", "mision", "misión", "uniforme", "trabajo", "guardia", "valiente", "disciplina", "fuerte")) {
+        return pick([
+          "German admira tu valentía y la disciplina que llevas contigo. Para él eres una mujer increíble, dentro y fuera de cada misión. ♥",
+          "POU, tienes una fuerza admirable, pero no tienes que estar en modo valiente todo el tiempo. También mereces descanso, cariño y que te cuiden.",
+          "Tu compromiso y tu coraje son parte de ti, pero German quiere a toda Aracely: la valiente, la dulce y la que se merece un descanso después de un día largo."
+        ]);
+      }
+      if (has("pou", "chapa", "apodo", "significa mi nombre", "significa pou", "significa tu apodo", "nombre de guerra")) {
+        return pick([
+          "POU es tu chapa de guerra y un apodo muy tuyo. Para German también es una forma cariñosa de decirte: mi persona favorita.",
+          "Tu chapa de guerra es POU, pero para German ese nombre viene con una sonrisa y muchísimo cariño.",
+          "POU es el nombre que te hace única en tus misiones y que a German le recuerda a su Aracely querida. ♥"
+        ]);
+      }
+      if (has("bonita", "hermosa", "linda", "guapa", "fea", "apariencia", "color", "vestir", "ropa", "vestido", "pelo", "cabello")) {
+        return pick([
+          "Para German eres preciosa por fuera y todavía más por todo lo que eres por dentro. Pero ponte lo que a ti te haga sentir cómoda y feliz. ♥",
+          "Mi respuesta romántica dice que eres hermosa, POU; mi consejo honesto es que elijas lo que te haga sentir más tú.",
+          "German ve algo muy especial en ti. Y hoy, con cualquier ropa y cualquier peinado, sigues siendo su persona favorita. 💌"
+        ]);
+      }
+      if (has("perdon", "perdón", "pelea", "discut", "enojad", "molest", "perdoname", "perdóname")) {
+        return pick([
+          "Si algo te preocupa entre ustedes, hablarlo con calma y escucharse de verdad puede ayudar. Un mensajito sincero a German puede ser un buen comienzo. ♥",
+          "Los malentendidos se resuelven mejor con honestidad y cariño que adivinando. Dile cómo te sientes y dale espacio para contarte lo suyo.",
+          "No puedo saber cómo se siente German en este momento, pero sí sé que conversar con cariño vale más que quedarse con la duda. 💌"
+        ]);
+      }
+      if (has("futuro", "casarnos", "matrimonio", "boda", "hijos", "siempre", "para siempre", "promesa")) {
+        return pick([
+          "Qué bonito imaginar cosas juntos, POU. El futuro se construye poquito a poquito, con lo que ustedes dos sueñan y conversan. ♥",
+          "No puedo prometer el futuro por German, pero sí puedo decirte que cada plan bonito empieza hablando con honestidad y cuidándose hoy.",
+          "Guarden esos sueños para compartirlos. A veces el plan más romántico empieza con una conversación sincera y un abrazo pendiente. 💌"
+        ]);
+      }
+      if (has("por que me", "porque me", "que te gusta de mi", "que te gusta", "por qué", "como me enamor")) {
+        return pick([
+          "German admira tu forma de ser, tu valentía y esos detalles tuyos que te hacen distinta. Le gustas por ser tú, Aracely. ♥",
+          "No es una sola cosa: es tu corazón, tu carácter, tu sonrisa y cómo conviertes un día común en algo que él recuerda.",
+          "Por todo eso que te hace ser POU: fuerte cuando toca, dulce a tu manera y completamente única para German. 💌"
+        ]);
+      }
+      if (has("donde", "qué hace", "que hace", "que haces", "qué haces", "hiciste", "esta haciendo", "está haciendo", "con quien", "quién", "quien")) {
+        return pick([
+          "No puedo ver dónde está German ni qué está haciendo ahora, POU. Mejor mándale un mensajito: seguro le alegra saber de ti. ♥",
+          "Eso solo lo sabe German en este momento. Este bot no puede seguir su ubicación ni leer sus mensajes; pregúntale directamente con confianza.",
+          "No tengo acceso al presente de German, pero apuesto a que le gustaría recibir una notita tuya. 💌"
+        ]);
+      }
+      if (has("quiere", "ama", "amor", "german", "novio", "pareja", "cuanto me")) {
+        return pick([
+          "German te quiere muchísimo, Aracely. Te piensa desde La Paz y guarda con ilusión cada abrazo que les falta darse. 💌",
+          "Muchísimo, POU. Y no solo en una frase romántica: en las ganas de saber de ti, acompañarte y volver a verte. ♥",
+          "Lo bastante para hacerte un espacio entero en internet, con flores, cartita y lluvia de 'te amo'. Eso ya dice bastante, ¿no? 😊"
+        ]);
+      }
+      if (has("ayuda", "consejo", "que hago", "qué hago", "deberia", "debería", "no se que", "no sé qué")) {
+        return pick([
+          "Puedo darte ánimo, pero no conozco todos los detalles. Cuéntaselo a alguien de confianza y, si tiene que ver con ustedes, pregúntale también a German con sinceridad. ♥",
+          "Respira y ve paso a paso, POU. Para algo importante, German te puede escuchar mejor que este mini bot.",
+          "No quiero inventarte una respuesta sin saber bien qué pasó. Si me cuentas un poquito más, puedo intentar darte un mensajito de ánimo."
+        ]);
+      }
+      return pick([
+        "No tengo una respuesta exacta para eso, POU, y prefiero no inventarla. Cuéntame un poquito más o pregúntale directamente a German; él conoce su historia contigo mejor que nadie. ♥",
+        "Esa pregunta se me escapa por ahora 😊. Funciono sin internet y solo conozco lo que German dejó preparado para esta página, pero puedo escucharte y ayudarte a pensar con cariño. 💌",
+        "No quiero adivinar algo importante. Si me das un poco más de contexto, intentaré orientarte; y si se trata de algo personal de ustedes, German podrá darte una respuesta sincera. ♥",
+        "Me ganaste con esa pregunta, POU. No puedo saberlo todo ni consultar internet, pero sí puedo acompañarte: dime qué es lo que más te preocupa y lo pensamos juntas. 😊"
+      ]);
+    }
+
+    function addChatMessage(text, sender) {
+      const message = document.createElement("p");
+      message.className = `chat-message ${sender}`;
+      message.textContent = text;
+      chatWindow.append(message);
+      chatWindow.scrollTop = chatWindow.scrollHeight;
+    }
+
+    function sendPouQuestion(question) {
+      const trimmedQuestion = question.trim();
+      if (!trimmedQuestion) return;
+      addChatMessage(trimmedQuestion, "user");
+      const reply = answerPou(trimmedQuestion);
+      addChatMessage(reply, "bot");
+      if (pouSoundEnabled) {
+        pouVoiceAudio.currentTime = 0;
+        pouVoiceAudio.play().catch(() => {
+          pouSoundEnabled = false;
+          pouSoundButton.setAttribute("aria-pressed", "false");
+          pouSoundButton.textContent = "Sonido de POU no disponible; intenta otra vez";
+          pouAudioStatus.textContent = "El navegador no pudo reproducir el audio de POU.";
+        });
+      }
+      if (voiceEnabled) speakAsPou(reply);
+    }
+
+    chatForm.addEventListener("submit", (event) => {
+      event.preventDefault();
+      sendPouQuestion(chatInput.value);
+      chatInput.value = "";
+      chatInput.focus();
+    });
+
+    document.querySelectorAll(".quick-question").forEach((button) => {
+      button.addEventListener("click", () => sendPouQuestion(button.textContent));
+    });
+
+    function resizeCanvas() {
+      const ratio = Math.min(window.devicePixelRatio || 1, 2);
+      canvas.width = window.innerWidth * ratio;
+      canvas.height = window.innerHeight * ratio;
+      canvas.style.width = `${window.innerWidth}px`;
+      canvas.style.height = `${window.innerHeight}px`;
+      context.setTransform(ratio, 0, 0, ratio, 0, 0);
+      drops = Array.from({ length: Math.floor(window.innerWidth / 42) }, () => ({
+        x: Math.random() * window.innerWidth,
+        y: Math.random() * window.innerHeight,
+        speed: 0.55 + Math.random() * 1.05,
+        size: 13 + Math.random() * 8
+      }));
+    }
+
+    function createLoveBurst(x, y) {
+      const particles = [];
+      const particleCount = window.matchMedia("(prefers-reduced-motion: reduce)").matches ? 14 : 32;
+      for (let index = 0; index < particleCount; index += 1) {
+        const angle = (index / particleCount) * Math.PI * 2;
+        const heartX = 16 * Math.sin(angle) ** 3;
+        const heartY = -(13 * Math.cos(angle) - 5 * Math.cos(2 * angle) - 2 * Math.cos(3 * angle) - Math.cos(4 * angle));
+        const scale = 2.4;
+        particles.push({
+          x: x + heartX * scale,
+          y: y + heartY * scale,
+          velocityX: heartX * .025 + (Math.random() - .5) * .45,
+          velocityY: heartY * .025 + (Math.random() - .5) * .45,
+          size: 10 + Math.random() * 6,
+          color: ["#ffd1de", "#ff8fb7", "#fff0bc", "#efb3ff"][index % 4]
+        });
+      }
+      heartBursts.push({ x, y, particles, createdAt: performance.now() });
+    }
+
+    document.addEventListener("click", (event) => {
+      if (event.target instanceof Element && event.target.closest("#gate")) return;
+      const clicked = event.target instanceof Element ? event.target : document.body;
+      const bounds = clicked.getBoundingClientRect();
+      const x = event.detail === 0 ? bounds.left + bounds.width / 2 : event.clientX;
+      const y = event.detail === 0 ? bounds.top + bounds.height / 2 : event.clientY;
+      createLoveBurst(x, y);
+    });
+
+    function drawRain() {
+      context.clearRect(0, 0, window.innerWidth, window.innerHeight);
+      if (rainEnabled) {
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        context.shadowColor = "#ff91b8";
+        context.shadowBlur = 12;
+        for (const drop of drops) {
+          context.font = `600 ${drop.size}px Georgia`;
+          context.fillStyle = `rgba(255, 199, 218, ${0.68 + Math.random() * 0.2})`;
+          context.fillText("te amo", drop.x, drop.y);
+          drop.y += drop.speed;
+          if (drop.y > window.innerHeight + 20) {
+            drop.y = -20;
+            drop.x = Math.random() * window.innerWidth;
+          }
+        }
+      }
+      context.shadowBlur = 0;
+      const now = performance.now();
+      heartBursts = heartBursts.filter((burst) => now - burst.createdAt < 1200);
+      for (const burst of heartBursts) {
+        const progress = (now - burst.createdAt) / 1200;
+        context.textAlign = "center";
+        context.textBaseline = "middle";
+        for (const particle of burst.particles) {
+          particle.x += particle.velocityX;
+          particle.y += particle.velocityY;
+          particle.velocityY += .012;
+          context.globalAlpha = 1 - progress;
+          context.shadowColor = particle.color;
+          context.shadowBlur = 10;
+          context.fillStyle = particle.color;
+          context.font = `bold ${particle.size}px Georgia`;
+          context.fillText("♥", particle.x, particle.y);
+        }
+        context.globalAlpha = 1 - progress;
+        context.shadowColor = "#ffabc9";
+        context.shadowBlur = 18;
+        context.fillStyle = "#fff1f5";
+        context.font = "700 18px Arial";
+        context.fillText("te amo", burst.x, burst.y);
+      }
+      context.globalAlpha = 1;
+      context.shadowBlur = 0;
+      window.requestAnimationFrame(drawRain);
+    }
+
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+    drawRain();
+  </script>
+</body>
+</html>
